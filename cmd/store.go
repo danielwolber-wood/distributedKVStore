@@ -7,7 +7,7 @@ import (
 
 type KVStore struct {
 	data map[string]string
-	mu   sync.Mutex
+	mu   sync.RWMutex
 }
 
 func NewKVStore() *KVStore {
@@ -17,8 +17,8 @@ func NewKVStore() *KVStore {
 }
 
 func (s *KVStore) Get(key string) (string, error) {
-	s.mu.Lock()
-	defer s.mu.Unlock()
+	s.mu.RLock()
+	defer s.mu.RUnlock()
 	value, ok := s.data[key]
 	if !ok {
 		return "", fmt.Errorf("key does not exist")
