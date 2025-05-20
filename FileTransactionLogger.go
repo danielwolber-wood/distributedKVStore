@@ -46,7 +46,7 @@ func (f *FileTransactionLogger) Err() <-chan error {
 func (f *FileTransactionLogger) Run() {
 	events := make(chan FileTransaction, 16)
 	f.events = events
-	errors := make(chan error, 16)
+	errors := make(chan error, 1)
 	f.errors = errors
 	go func() {
 		for e := range events {
