@@ -39,3 +39,11 @@ func (f *FileTransactionLogger) WriteDelete(key string) {
 func (f *FileTransactionLogger) Err() <-chan error {
 	return f.errors
 }
+
+func NewFileTransactionLogger(filename string) (FileTransactionLogger, error) {
+	file, err := os.OpenFile(filename, os.O_APPEND|os.O_CREATE, 0755)
+	if err != nil {
+		return FileTransactionLogger{}, err
+	}
+	return FileTransactionLogger{file: file}, nil
+}
