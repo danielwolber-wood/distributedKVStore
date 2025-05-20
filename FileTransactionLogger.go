@@ -1,6 +1,9 @@
 package distributedKVStore
 
-import "os"
+import (
+	"fmt"
+	"os"
+)
 
 type TransactionLogger interface {
 	WriteDelete(key string)
@@ -40,8 +43,25 @@ func (f *FileTransactionLogger) Err() <-chan error {
 	return f.errors
 }
 
+func (f *FileTransactionLogger) Run() {
+	events := make(chan FileTransaction, 16)
+	f.events = events
+	errors := make(chan error, 16)
+	f.errors = errors
+	go func() {
+		for e := range events {
+			f.lastId++
+			_, err := fmt.Fprintf(f.file, "%d\t%d\t%s\t%s\n",
+				f.lastId, e.EventType, e.Key, e.Value)
+			if err != nil {
+				errors <- err
+			}
+		}
+	}()
+}
+
 func NewFileTransactionLogger(filename string) (FileTransactionLogger, error) {
-	file, err := os.OpenFile(filename, os.O_APPEND|os.O_CREATE, 0755)
+	file, err := os.OpenFile(filename, os.O_RDWR|os.O_APPEND|os.O_CREATE, 0755)
 	if err != nil {
 		return FileTransactionLogger{}, err
 	}
